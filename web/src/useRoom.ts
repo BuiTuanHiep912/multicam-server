@@ -1,6 +1,7 @@
 import { onScopeDispose, ref, type UnwrapNestedRefs } from "vue";
 import { api, errText } from "./api";
 import { log } from "./log";
+import { pauseMusic, playMusic, unlockMusic } from "./recordMusic";
 
 const SYNC_MS = 4000;
 
@@ -135,6 +136,7 @@ export function useRoom() {
     members.value.find((m) => m.member_id === memberId)?.camera_name ?? memberId.slice(0, 6);
 
   async function startRecording(): Promise<void> {
+    unlockMusic();
     await run(recNotice, async () => {
       const r = await api(`/rooms/${roomId.value}/recording/start`, {
         method: "POST",
@@ -146,10 +148,12 @@ export function useRoom() {
         (r.already_active ? " (phiên đang chạy, lệnh được gửi lại)" : "") +
         (rejected.length ? `. Bị loại: ${rejected.map((x) => `${nameOf(x.member_id)}: ${x.reason}`).join(", ")}` : "");
       log(`start recording session=${(r.session_id ?? "").slice(0, 8)}`);
+      if ((r.targets ?? []).length > 0) playMusic();
     });
   }
 
   async function stopRecording(): Promise<void> {
+    pauseMusic(); // dừng ngay lúc bấm, không chờ server trả lời
     await run(recNotice, async () => {
       const r = await api(`/rooms/${roomId.value}/recording/stop`, {
         method: "POST",

@@ -52,6 +52,8 @@ services:
       MEDIASOUP_RTC_MAX_PORT: ${MEDIASOUP_RTC_MAX_PORT:-40199}
     volumes:
       - backend-data:/app/data
+      # Nhạc Controller (record.m4a, ~69MB, không nằm trong git/image): chép vào ./music trên VPS.
+      - ${MUSIC_DIR:-./music}:/app/public/music:ro
     depends_on:
       minio:
         condition: service_healthy
